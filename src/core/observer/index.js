@@ -107,11 +107,13 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
+// 每一个对象值都会伴生一个Observer实例
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
     return
   }
   let ob: Observer | void
+  // 已经做过响应式处理，直接返回ob实例
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
@@ -139,6 +141,7 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
+  // ! 小管家 管对象的key
   const dep = new Dep()
 
   const property = Object.getOwnPropertyDescriptor(obj, key)
@@ -152,7 +155,7 @@ export function defineReactive (
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key]
   }
-
+  // 递归遍历返回childOb
   let childOb = !shallow && observe(val)
   Object.defineProperty(obj, key, {
     enumerable: true,
@@ -160,6 +163,10 @@ export function defineReactive (
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
+        // 相互添加依赖关系
+        // watcher 1：n  dep
+        // user watcher: this.$watch()
+        // n:n
         dep.depend()
         if (childOb) {
           childOb.dep.depend()

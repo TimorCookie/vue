@@ -48,8 +48,11 @@ export function proxy (target: Object, sourceKey: string, key: string) {
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
+  // ! 1.处理props
   if (opts.props) initProps(vm, opts.props)
+  // ! 2.处理methods
   if (opts.methods) initMethods(vm, opts.methods)
+  // ! 3.数据响应式data
   if (opts.data) {
     initData(vm)
   } else {
@@ -124,6 +127,7 @@ function initData (vm: Component) {
   }
   // proxy data on instance
   const keys = Object.keys(data)
+  // 避免命名冲突
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
@@ -144,6 +148,7 @@ function initData (vm: Component) {
         vm
       )
     } else if (!isReserved(key)) {
+       // 代理
       proxy(vm, `_data`, key)
     }
   }
